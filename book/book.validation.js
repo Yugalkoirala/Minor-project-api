@@ -1,6 +1,7 @@
 import Joi from "joi";
 
 export const addBookValidationSchema = Joi.object({
+    image: Joi.string(),
     title: Joi.string().required().trim().min(2).max(255),
     author: Joi.string().required().trim().min(2).max(100),
     genre: Joi.string().required().trim().min(2).max(50),
@@ -8,6 +9,7 @@ export const addBookValidationSchema = Joi.object({
     condition: Joi.string().valid('New', 'Like New', 'Very Good', 'Good', 'Acceptable').required(),
     description: Joi.string().max(1000), // Assuming owner is represented by their ID
     available: Joi.boolean().default(true),
+
 });
 
 export const paginationDetailsValidationSchema = Joi.object({

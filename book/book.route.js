@@ -12,6 +12,11 @@ router.post("/book/add", isUser, async (req, res) => {
     // extract book from req.body
     const newBook = req.body;
 
+    // newBook.ownerId = req?.loggedInUser?._id;
+
+    // Append image URL to newBook object
+    // newBook.image = req.file.filename;
+
     // validate book using Joi
     try {
         await addBookValidationSchema.validateAsync(newBook);
@@ -109,6 +114,11 @@ router.post("/book/all", isUser, async (req, res) => {
     // Find all books
     const books = await Book.aggregate([
         {
+            $sort: {
+                createdAt: -1,
+            },
+        },
+        {
             $skip: skip,
         },
         {
@@ -116,14 +126,21 @@ router.post("/book/all", isUser, async (req, res) => {
         },
         {
             $project: {
+                image: 1,
                 title: 1,
                 author: 1,
                 genre: 1,
+                publicationYear: 1,
+                condition: 1,
             },
         },
     ]);
+    const totalMatchingBooks = await Book.countDocuments();
 
-    return res.status(200).send(books);
+    // Total pages
+    const totalPages = Math.ceil(totalMatchingBooks / paginationDetails.limit);
+
+    return res.status(200).send({ books, totalMatchingBooks, totalPages });
 });
 
 export default router;
