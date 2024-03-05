@@ -86,17 +86,34 @@ const bookSchema = new mongoose.Schema({
         required: true,
         ref: 'User', // Reference to the User model for the owner
     },
+    phoneNumber: {
+        type: String,
+        required: false,
+        trim: true,
+        minlength: 7,
+        maxlength: 15,
+    },
+    email: {
+        type: String,
+        required: false,
+        trim: true,
+        lowercase: true,
+        match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    },
     image: {
         type: String,
         required: false,
-        message: 'Invalid image URL',
+        trim: true,
     },
-    // },
     available: {
         type: Boolean,
         default: true,
     },
-});
+},
+    {
+        timestamps: true,
+    },
+);
 
 // Create model for a book
 export const Book = mongoose.model('Book', bookSchema);

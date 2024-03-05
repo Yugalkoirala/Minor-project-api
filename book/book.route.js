@@ -12,11 +12,6 @@ router.post("/book/add", isUser, async (req, res) => {
     // extract book from req.body
     const newBook = req.body;
 
-    // newBook.ownerId = req?.loggedInUser?._id;
-
-    // Append image URL to newBook object
-    // newBook.image = req.file.filename;
-
     // validate book using Joi
     try {
         await addBookValidationSchema.validateAsync(newBook);
@@ -126,14 +121,15 @@ router.post("/book/all", isUser, async (req, res) => {
         },
         {
             $project: {
-                image: 1,
                 title: 1,
                 author: 1,
                 genre: 1,
                 publicationYear: 1,
                 condition: 1,
+                image: 1,
             },
         },
+
     ]);
     const totalMatchingBooks = await Book.countDocuments();
 
@@ -141,6 +137,44 @@ router.post("/book/all", isUser, async (req, res) => {
     const totalPages = Math.ceil(totalMatchingBooks / paginationDetails.limit);
 
     return res.status(200).send({ books, totalMatchingBooks, totalPages });
+});
+
+
+// Search for books
+router.get("/book/search", isUser, async (req, res) => {
+    const { query } = req.query;
+
+    try {
+        // Perform case-insensitive search for books matching the query
+        const books = await Book.find({
+            $or: [
+                { title: { $regex: query, $options: 'i' } }, // Search by title
+                { author: { $regex: query, $options: 'i' } }, // Search by author
+                { genre: { $regex: query, $options: 'i' } }, // Search by genre
+                { description: { $regex: query, $options: 'i' } }, // Search by description
+                // Add more fields to search by if needed
+            ],
+        });
+
+        res.json({ books });
+    } catch (error) {
+        console.error('Error searching for books:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Fetch all book titles
+router.get("/book/titles", isUser, async (req, res) => {
+    try {
+        // Select only the 'title' field for all books
+        const books = await Book.find().select("title -_id");
+        const titles = books.map(book => book.title); // Extract titles from the books array
+
+        res.status(200).json({ titles });
+    } catch (error) {
+        console.error('Error fetching book titles:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
 export default router;
